@@ -181,3 +181,37 @@ document.addEventListener('DOMContentLoaded', () => {
 function scrollToSection(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 }
+
+// Preview gambar setelah dipilih
+function previewImage(input, previewId, labelId) {
+  const preview = document.getElementById(previewId);
+  const label = document.getElementById(labelId);
+  const img = preview.querySelector('img');
+
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    if (!file.type.match('image.*')) {
+      alert("❌ Hanya file gambar (JPG/PNG) yang diizinkan.");
+      input.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      img.src = e.target.result;
+      preview.style.display = 'block';
+      label.textContent = file.name;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// Konversi file ke base64 (digunakan saat upload)
+function getBase64FromFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
