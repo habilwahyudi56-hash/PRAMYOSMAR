@@ -1,1 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Detail Kegiatan — PRAMYOSMAR</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    .detail-hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .detail-img {
+      width: 100%;
+      max-height: 50vh;
+      object-fit: cover;
+      border-radius: 16px;
+      margin: 1.5rem 0;
+      box-shadow: 0 0 25px rgba(0, 243, 255, 0.3);
+    }
+    .detail-content {
+      padding: 1.5rem;
+      line-height: 1.7;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(0, 243, 255, 0.1);
+      color: var(--neon-blue);
+      padding: 0.6rem 1.5rem;
+      border-radius: 50px;
+      text-decoration: none;
+      margin-bottom: 1.5rem;
+      transition: 0.3s;
+    }
+    .back-btn:hover {
+      background: rgba(0, 243, 255, 0.2);
+      transform: translateX(-4px);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <!-- ... (sama seperti sebelumnya) ... -->
+    <div class="logo-container">
+      <div class="logo-glow">
+        <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="#00f3ff" stroke-width="2"/>
+          <path d="M30,50 L45,35 L45,65 Z" fill="#e040fb"/>
+          <path d="M70,50 L55,35 L55,65 Z" fill="#00f3ff"/>
+        </svg>
+      </div>
+      <h1 class="org-title">PRAMYOSMAR</h1>
+    </div>
+    <nav class="nav">
+      <a href="index.html">Beranda</a>
+      <a href="kegiatan.html">← Kembali ke Daftar</a>
+    </nav>
+  </header>
 
+  <main class="page-content">
+    <div class="container">
+      <a href="kegiatan.html" class="back-btn">
+        ← Kembali ke Daftar Kegiatan
+      </a>
+
+      <div id="detail-container">
+        <div class="glow" style="text-align:center; padding:3rem;">Memuat...</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const id = localStorage.getItem('pramyosmar_kegiatan_active_id');
+      if (!id) {
+        document.getElementById('detail-container').innerHTML = `
+          <div class="glow" style="text-align:center; color:#ff6b6b;">
+            ❌ Data tidak ditemukan. Kembali ke <a href="kegiatan.html" style="color:var(--neon-purple)">daftar kegiatan</a>.
+          </div>
+        `;
+        return;
+      }
+
+      const kegiatanList = JSON.parse(localStorage.getItem('pramyosmar_kegiatan') || '[]');
+      const keg = kegiatanList.find(k => k.id == id);
+
+      if (!keg) {
+        document.getElementById('detail-container').innerHTML = `<p class="glow">Kegiatan tidak ditemukan.</p>`;
+        return;
+      }
+
+      const tanggal = new Date(keg.tanggal).toLocaleDateString('id-ID', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      });
+
+      document.getElementById('detail-container').innerHTML = `
+        <div class="detail-hero">
+          <h1 class="page-title glow">${keg.title}</h1>
+          <p style="color:var(--neon-blue); font-size:1.1rem;">${tanggal}</p>
+        </div>
+
+        <img 
+          src="${keg.image || 'assets/placeholder.jpg'}" 
+          alt="${keg.title}" 
+          class="detail-img glass"
+        >
+
+        <div class="detail-content glass">
+          <h2>Deskripsi Kegiatan</h2>
+          <p>${keg.description.replace(/\n/g, '<br>')}</p>
+        </div>
+      `;
+    });
+  </script>
+</body>
+</html>
