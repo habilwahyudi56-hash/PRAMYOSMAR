@@ -68,6 +68,7 @@
     </div>
   </main>
 
+  <script src="script.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const id = localStorage.getItem('pramyosmar_kegiatan_active_id');
@@ -87,7 +88,7 @@
       if (!keg) {
         document.getElementById('detail-container').innerHTML = `
           <p class="glow" style="text-align:center;">
-            Kegiatan dengan ID ${id} tidak ditemukan.
+            Kegiatan tidak ditemukan.
           </p>
         `;
         return;
