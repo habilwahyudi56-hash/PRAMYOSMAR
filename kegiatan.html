@@ -7,8 +7,7 @@
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
-<body id="body">
-  <!-- Header -->
+<body>
   <header class="header">
     <div class="logo-container">
       <div class="logo-glow">
@@ -26,7 +25,8 @@
       <a href="berita.html">Berita</a>
       <a href="kegiatan.html" class="active">Kegiatan</a>
       <a href="materi.html">Materi</a>
-      <a href="ujian.html">Ujian & Struktur</a>
+      <a href="ujian.html">Ujian</a>
+      <a href="struktur.html">Struktur</a>
       <a href="kontak.html">Kontak</a>
     </nav>
   </header>
@@ -74,7 +74,6 @@
                 onchange="previewImage(this, 'keg-foto-preview', 'keg-foto-label')"
               >
             </div>
-            <!-- Preview -->
             <div id="keg-foto-preview" class="image-preview" style="display:none; margin-top:1rem;">
               <img id="keg-preview-img" src="" alt="Preview" style="max-width:100%; border-radius:8px; box-shadow:0 0 10px rgba(0,243,255,0.3);">
             </div>
@@ -93,40 +92,6 @@
 
   <script src="script.js"></script>
   <script>
-    // Konversi file ke base64
-    function getBase64FromFile(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-      });
-    }
-
-    // Preview gambar
-    function previewImage(input, previewId, labelId) {
-      const preview = document.getElementById(previewId);
-      const label = document.getElementById(labelId);
-      const img = preview.querySelector('img');
-
-      if (input.files && input.files[0]) {
-        const file = input.files[0];
-        if (!file.type.match('image.*')) {
-          alert("❌ Hanya file gambar (JPG/PNG/WebP) yang diizinkan.");
-          input.value = '';
-          return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          img.src = e.target.result;
-          preview.style.display = 'block';
-          label.textContent = `✓ ${file.name}`;
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
     // Render daftar kegiatan
     function renderKegiatanList() {
       const container = document.getElementById('kegiatan-list');
@@ -137,7 +102,7 @@
         return;
       }
 
-      container.innerHTML = kegiatan.map((k, i) => `
+      container.innerHTML = kegiatan.map(k => `
         <div class="kegiatan-card glass">
           <img 
             src="${k.image || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%22 y=%2250%22 font-size=%2212%22 fill=%22%23555%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>NO IMAGE</text></svg>'}" 
@@ -190,7 +155,7 @@
       list.unshift(data);
       localStorage.setItem('pramyosmar_kegiatan', JSON.stringify(list));
 
-      alert("✅ Kegiatan berhasil diupload!\nFoto disimpan secara lokal (simulasi).");
+      alert("✅ Kegiatan berhasil diupload!");
       renderKegiatanList();
 
       // Reset form
