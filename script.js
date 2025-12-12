@@ -1,51 +1,52 @@
-// ───────────────────────────────────────
-// ✅ PRAMYOSMAR — script.js FULL
-// Fitur: Admin, Upload (file picker), Render, Routing Simulasi
-// ───────────────────────────────────────
+// ─────────────────────────────────────────────────────
+// ✅ PRAMYOSMAR — script.js FULL (JSONBin Version)
+// BIN ID: 693c1f52ae596e708f95272f
+// Fitur: Upload ke server, multi-device, aman
+// ─────────────────────────────────────────────────────
 
-// 🔐 Konfigurasi Admin
-const ADMIN_PASSWORD = "ADMIN_PASSWORD"; // Ganti sesuai kebutuhan
-let isAdmin = localStorage.getItem('pramyosmar_admin') === 'true';
+// 🔑 Konfigurasi JSONBin (GANTI SECRET KEY SESUAI AKUN ANDA)
+const BIN_ID = "693c1f52ae596e708f95272f";
+// 💡 DAPATKAN SECRET KEY DI: https://jsonbin.io/693c1f52ae596e708f95272f → Security → Enable Secret Key → Copy
+const BIN_SECRET_KEY = "YOUR_SECRET_KEY_HERE"; // ← GANTI DENGAN SECRET KEY ANDA!
 
-// 🚀 Inisialisasi saat halaman dimuat
+// 🔐 Password Admin
+const ADMIN_PASSWORD = "ADMIN_PASSWORD"; // ← Ganti jadi password Anda!
+let isAdmin = false;
+
+// 🚀 Inisialisasi
 document.addEventListener('DOMContentLoaded', () => {
-  // Cek status admin
-  isAdmin = localStorage.getItem('pramyosmar_admin') === 'true';
-  updateAdminUI();
-
-  // Jika ada halaman yang butuh render khusus
+  // Coba baca dari server saat load
   const path = window.location.pathname.split('/').pop();
-
-  if (path === 'berita.html') {
-    renderList('berita', 'berita-list');
-  } else if (path === 'kegiatan.html') {
-    renderKegiatanList(); // sudah ada di kegiatan.html local script
+  
+  if (path === 'kegiatan.html') {
+    renderKegiatanFromServer();
+  } else if (path === 'berita.html') {
+    renderListFromServer('berita', 'berita-list');
   } else if (path === 'materi.html') {
-    renderList('materi', 'materi-list');
+    renderListFromServer('materi', 'materi-list');
   } else if (path === 'ujian.html') {
-    renderList('ujian', 'ujian-list');
-    renderList('struktur', 'struktur-list');
-  } else if (path === 'struktur.html') {
-    renderList('struktur', 'struktur-list');
+    renderListFromServer('ujian', 'ujian-list');
+    renderListFromServer('struktur', 'struktur-list');
   }
+
+  // Cek login admin
+  updateAdminUI();
 });
 
-// ──────── 🔐 SISTEM ADMIN ────────
+// ──────── 🔐 ADMIN ────────
 function loginAdmin() {
   const pass = prompt("🔐 Masukkan password admin:");
   if (pass === ADMIN_PASSWORD) {
-    localStorage.setItem('pramyosmar_admin', 'true');
     isAdmin = true;
     alert("✅ Login berhasil!");
     updateAdminUI();
   } else if (pass !== null) {
-    alert("❌ Password salah! Coba lagi.");
+    alert("❌ Password salah!");
   }
 }
 
 function logoutAdmin() {
-  if (confirm("Yakin ingin logout?")) {
-    localStorage.removeItem('pramyosmar_admin');
+  if (confirm("Yakin logout?")) {
     isAdmin = false;
     updateAdminUI();
     alert("✅ Logout berhasil.");
@@ -53,19 +54,17 @@ function logoutAdmin() {
 }
 
 function updateAdminUI() {
-  // Update semua tombol admin di halaman
   document.querySelectorAll('.admin-btn').forEach(btn => {
     btn.textContent = isAdmin ? "Logout Admin" : "Login Admin";
     btn.onclick = isAdmin ? logoutAdmin : loginAdmin;
   });
 
-  // Tampilkan/sembunyikan semua form upload
   document.querySelectorAll('.upload-form').forEach(form => {
     form.style.display = isAdmin ? 'block' : 'none';
   });
 }
 
-// ──────── 📤 UPLOAD UMUM (base64) ────────
+// ──────── 📤 UTILITAS UPLOAD ────────
 function getBase64FromFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -98,53 +97,141 @@ function previewImage(input, previewId, labelId) {
   reader.readAsDataURL(file);
 }
 
-// ──────── 📋 RENDER LIST UMUM ────────
-function renderList(type, containerId) {
+// ──────── ☁️ SIMPAN KE JSONBIN SERVER ────────
+async function saveToServer(type, newData) {
+  if (!isAdmin) return alert("🔒 Login sebagai admin dulu!");
+
+  try {
+    // Ambil data lama dulu
+    const getRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+      headers: { "X-Master-Key": BIN_SECRET_KEY }
+    });
+    
+    if (!getRes.ok) throw new Error("Gagal baca data lama");
+    
+    const oldData = await getRes.json();
+    const current = oldData.record || {
+      kegiatan: [], berita: [], materi: [], ujian: [], struktur: []
+    };
+
+    // Tambah data baru di awal
+    if (!current[type]) current[type] = [];
+    current[type].unshift(newData);
+
+    // Simpan ulang
+    const putRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Master-Key": BIN_SECRET_KEY,
+        "X-Bin-Private": "true"
+      },
+      body: JSON.stringify(current)
+    });
+
+    if (putRes.ok) {
+      alert("✅ Data berhasil disimpan ke server!\nSemua pengguna bisa melihatnya.");
+      
+      // Refresh tampilan
+      if (type === 'kegiatan') {
+        renderKegiatanFromServer();
+      } else {
+        renderListFromServer(type, `${type}-list`);
+      }
+    } else {
+      const err = await putRes.json();
+      throw new Error(err.message || "Gagal update server");
+    }
+  } catch (err) {
+    alert(`❌ Gagal simpan ke server:\n${err.message}`);
+  }
+}
+
+// ──────── 📋 RENDER DARI SERVER ────────
+async function renderListFromServer(type, containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  const items = JSON.parse(localStorage.getItem(`pramyosmar_${type}`) || '[]');
-  
-  if (items.length === 0) {
-    container.innerHTML = `<p class="glow">Belum ada data ${type}.</p>`;
-    return;
+  try {
+    const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+      headers: { "X-Master-Key": BIN_SECRET_KEY }
+    });
+    
+    if (!response.ok) throw new Error("Gagal koneksi ke server");
+    
+    const data = await response.json();
+    const items = (data.record?.[type] || []).slice(0, 20); // max 20
+
+    if (items.length === 0) {
+      container.innerHTML = `<p class="glow">Belum ada data ${type}.</p>`;
+      return;
+    }
+
+    const html = items.map((item, i) => {
+      let imgTag = '';
+      if (item.image) {
+        imgTag = `<img src="${item.image}" alt="${item.title || item.nama}" class="card-img" style="max-width:100%; border-radius:8px; margin:0.5rem 0;">`;
+      }
+
+      return `
+        <div class="glass card" style="margin-bottom:1.5rem; padding:1.5rem;">
+          <h3>${item.title || item.nama || 'Tanpa Judul'}</h3>
+          <p><small>${item.date || item.tanggal || ''}</small></p>
+          <p>${item.description || item.isi || item.catatan || ''}</p>
+          ${imgTag}
+          ${item.jabatan ? `<p><strong>${item.jabatan}</strong></p>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML = `<p class="glow">❌ Gagal muat data: ${err.message}</p>`;
   }
+}
 
-  // Template berbeda tergantung jenis
-  const html = items.map(item => {
-    let imgTag = '';
-    if (item.image) {
-      imgTag = `<img src="${item.image}" alt="${item.title || item.nama}" class="card-img">`;
-    } else if (item.file && (item.file.endsWith('.jpg') || item.file.endsWith('.png'))) {
-      imgTag = `<img src="${item.file}" alt="file" class="card-img">`;
+async function renderKegiatanFromServer() {
+  const container = document.getElementById('kegiatan-list');
+  if (!container) return;
+
+  try {
+    const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+      headers: { "X-Master-Key": BIN_SECRET_KEY }
+    });
+    
+    if (!response.ok) throw new Error("Gagal koneksi ke server");
+    
+    const data = await response.json();
+    const kegiatan = (data.record?.kegiatan || []).slice(0, 30);
+
+    if (kegiatan.length === 0) {
+      container.innerHTML = `<p class="glow" style="grid-column:1/-1; text-align:center;">Belum ada kegiatan.</p>`;
+      return;
     }
 
-    let fileType = '';
-    if (item.file) {
-      if (item.file.endsWith('.pdf')) fileType = '📄 PDF';
-      else if (item.file.endsWith('.jpg') || item.file.endsWith('.png')) fileType = '🖼️ Gambar';
-    }
-
-    return `
-      <div class="glass card" style="margin-bottom:1.5rem; padding:1.5rem;">
-        <h3>${item.title || item.nama || 'Tanpa Judul'}</h3>
-        <p><small>${item.date || item.tanggal || ''}</small></p>
-        <p>${item.isi || item.description || item.catatan || ''}</p>
-        ${imgTag}
-        ${item.jabatan ? `<p><strong>${item.jabatan}</strong></p>` : ''}
-        ${fileType ? `<p>${fileType}</p>` : ''}
-        ${item.file ? `<a href="${item.file}" target="_blank" class="neon-border" style="display:inline-block; margin-top:0.5rem; padding:0.4rem 1rem;">Buka File</a>` : ''}
+    container.innerHTML = kegiatan.map((k, i) => `
+      <div class="kegiatan-card glass">
+        <img 
+          src="${k.image || 'image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%22 y=%2250%22 font-size=%2212%22 fill=%22%23555%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>NO IMAGE</text></svg>'}" 
+          alt="${k.title}" 
+          class="kegiatan-img"
+          onclick="openDetail(${i})" <!-- Gunakan index untuk demo sederhana -->
+        >
+        <div class="kegiatan-info">
+          <h3 class="kegiatan-title">${k.title}</h3>
+          <p class="kegiatan-date">${k.tanggal || '—'}</p>
+        </div>
       </div>
-    `;
-  }).join('');
-
-  container.innerHTML = html;
+    `).join('');
+  } catch (err) {
+    container.innerHTML = `<p class="glow">❌ Gagal muat kegiatan: ${err.message}</p>`;
+  }
 }
 
 // ──────── 🧭 UTILITAS ────────
-function scrollToSection(id) {
-  const el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: 'smooth' });
+function openDetail(index) {
+  localStorage.setItem('pramyosmar_kegiatan_index', index);
+  window.location.href = 'kegiatan-detail.html';
 }
 
 function formatDate(dateStr) {
@@ -153,111 +240,62 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-// ──────── 📤 UPLOAD SPESIFIK (bisa dipanggil dari halaman mana saja) ────────
+// ──────── 📤 UPLOAD FUNGSI KHUSUS ────────
 
-// Contoh: upload berita (dipanggil dari berita.html)
-function uploadBerita(judul, tanggal, isi, fileInput) {
+// 🗓️ Upload Kegiatan
+async function uploadKegiatan() {
   if (!isAdmin) return alert("🔒 Login sebagai admin dulu!");
-  if (!judul || !isi) return alert("❌ Judul dan isi wajib diisi!");
 
-  (async () => {
-    let imageData = '';
-    if (fileInput?.files?.[0]) {
-      try {
-        imageData = await getBase64FromFile(fileInput.files[0]);
-      } catch (e) {
-        return alert("❌ Gagal memuat gambar.");
-      }
-    }
+  const judul = document.getElementById('keg-judul')?.value.trim();
+  const tanggal = document.getElementById('keg-tgl')?.value;
+  const desc = document.getElementById('keg-desc')?.value.trim();
+  const fileInput = document.getElementById('keg-foto-input');
 
-    const data = { id: Date.now(), title: judul, date: tanggal, isi, image: imageData };
-    saveData('berita', data);
-    alert("✅ Berita berhasil diupload!");
-  })();
-}
-
-// Upload kegiatan (sudah ada di kegiatan.html — ini versi reusable)
-function uploadKegiatan2(judul, tanggal, desc, fileInput) {
-  if (!isAdmin) return alert("🔒 Login sebagai admin dulu!");
   if (!judul || !desc) return alert("❌ Judul dan deskripsi wajib diisi!");
 
-  (async () => {
-    let imageData = '';
-    if (fileInput?.files?.[0]) {
-      try {
-        imageData = await getBase64FromFile(fileInput.files[0]);
-      } catch (e) {
-        return alert("❌ Gagal memuat gambar.");
-      }
-    }
-
-    const data = { id: Date.now(), title: judul, tanggal, description: desc, image: imageData };
-    saveData('kegiatan', data);
-    alert("✅ Kegiatan berhasil diupload!");
-  })();
-}
-
-// Upload struktur (nama, jabatan, foto)
-function uploadStruktur(nama, jabatan, fileInput) {
-  if (!isAdmin) return alert("🔒 Login sebagai admin dulu!");
-  if (!nama || !jabatan) return alert("❌ Nama dan jabatan wajib diisi!");
-
-  (async () => {
-    let imageData = '';
-    if (fileInput?.files?.[0]) {
-      try {
-        imageData = await getBase64FromFile(fileInput.files[0]);
-      } catch (e) {
-        return alert("❌ Gagal memuat foto.");
-      }
-    }
-
-    const data = { id: Date.now(), nama, jabatan, image: imageData };
-    saveData('struktur', data);
-    alert("✅ Anggota berhasil ditambahkan!");
-  })();
-}
-
-// Upload materi/ujian (judul, isi/file)
-function uploadMateri(judul, isi, fileInput, jenis = 'teks') {
-  if (!isAdmin) return alert("🔒 Login sebagai admin dulu!");
-  if (!judul || !isi) return alert("❌ Judul dan isi/file wajib diisi!");
-
-  (async () => {
-    let fileData = isi;
-    if (fileInput?.files?.[0]) {
-      try {
-        fileData = await getBase64FromFile(fileInput.files[0]);
-      } catch (e) {
-        return alert("❌ Gagal memuat file.");
-      }
-    }
-
-    const data = { 
-      id: Date.now(), 
-      title: judul, 
-      isi: jenis === 'teks' ? isi : '', 
-      file: fileData,
-      jenis 
-    };
-    saveData(jenis === 'soal' ? 'ujian' : 'materi', data);
-    alert(`✅ ${jenis === 'soal' ? 'Soal' : 'Materi'} berhasil diupload!`);
-  })();
-}
-
-// ──────── 💾 SIMPAN KE LOCALSTORAGE ────────
-function saveData(type, data) {
-  const key = `pramyosmar_${type}`;
-  const list = JSON.parse(localStorage.getItem(key) || '[]');
-  list.unshift(data);
-  localStorage.setItem(key, JSON.stringify(list));
-  
-  // Refresh render jika di halaman yang sesuai
-  if (window.location.pathname.includes(type)) {
-    if (type === 'kegiatan') {
-      if (typeof renderKegiatanList === 'function') renderKegiatanList();
-    } else {
-      renderList(type, `${type}-list`);
+  let imageData = '';
+  if (fileInput?.files?.[0]) {
+    try {
+      imageData = await getBase64FromFile(fileInput.files[0]);
+    } catch (e) {
+      return alert("❌ Gagal memuat gambar.");
     }
   }
+
+  const data = { id: Date.now(), title: judul, tanggal, description: desc, image: imageData };
+  await saveToServer('kegiatan', data);
+
+  // Reset form
+  document.getElementById('keg-judul').value = '';
+  document.getElementById('keg-tgl').value = '';
+  document.getElementById('keg-desc').value = '';
+  if (fileInput) fileInput.value = '';
+  const preview = document.getElementById('keg-foto-preview');
+  if (preview) preview.style.display = 'none';
+  const label = document.getElementById('keg-foto-label');
+  if (label) label.textContent = 'Pilih file gambar (JPG/PNG)';
+}
+
+// 📰 Upload Berita (contoh)
+async function uploadBerita() {
+  if (!isAdmin) return alert("🔒 Login sebagai admin dulu!");
+  
+  const judul = document.getElementById('berita-judul')?.value.trim();
+  const tanggal = document.getElementById('berita-tanggal')?.value;
+  const isi = document.getElementById('berita-isi')?.value.trim();
+  const fileInput = document.getElementById('berita-foto-input');
+
+  if (!judul || !isi) return alert("❌ Judul dan isi wajib diisi!");
+
+  let imageData = '';
+  if (fileInput?.files?.[0]) {
+    try {
+      imageData = await getBase64FromFile(fileInput.files[0]);
+    } catch (e) {
+      return alert("❌ Gagal memuat gambar.");
+    }
+  }
+
+  const data = { id: Date.now(), title: judul, date: tanggal, isi, image: imageData };
+  await saveToServer('berita', data);
 }
