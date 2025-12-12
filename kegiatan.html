@@ -1,1 +1,196 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kegiatan — PRAMYOSMAR</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    .kegiatan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.8rem;
+      margin-top: 2rem;
+    }
+    .kegiatan-card {
+      background: var(--glass-bg);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .kegiatan-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 10px 25px rgba(0, 243, 255, 0.3);
+    }
+    .kegiatan-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      cursor: pointer;
+      filter: brightness(0.9);
+      transition: filter 0.3s;
+    }
+    .kegiatan-img:hover {
+      filter: brightness(1.1) contrast(1.05);
+    }
+    .kegiatan-info {
+      padding: 1.2rem;
+    }
+    .kegiatan-title {
+      font-size: 1.2rem;
+      margin: 0 0 0.5rem;
+      color: white;
+    }
+    .kegiatan-date {
+      font-size: 0.85rem;
+      color: var(--neon-blue);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo-container">
+      <div class="logo-glow">
+        <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="#00f3ff" stroke-width="2"/>
+          <path d="M30,50 L45,35 L45,65 Z" fill="#e040fb"/>
+          <path d="M70,50 L55,35 L55,65 Z" fill="#00f3ff"/>
+        </svg>
+      </div>
+      <h1 class="org-title">PRAMYOSMAR</h1>
+      <p class="tagline">Pramuka Muda Yogyakarta Mandiri, Solid, dan Berakhlak</p>
+    </div>
+    <nav class="nav">
+      <a href="index.html">Beranda</a>
+      <a href="berita.html">Berita</a>
+      <a href="kegiatan.html" class="active">Kegiatan</a>
+      <a href="materi.html">Materi</a>
+      <a href="ujian.html">Ujian & Struktur</a>
+      <a href="kontak.html">Kontak</a>
+    </nav>
+  </header>
 
+  <main class="page-content">
+    <div class="container">
+      <h1 class="page-title glow">🗓️ Daftar Kegiatan</h1>
+
+      <!-- Admin Upload -->
+      <div class="admin-section">
+        <button class="admin-btn"></button>
+        <div class="upload-form glass">
+          <h3>➕ Upload Kegiatan Baru</h3>
+          <div class="form-group">
+            <label>Judul Kegiatan</label>
+            <input type="text" id="keg-judul" placeholder="Contoh: Drone Mapping Camp">
+          </div>
+          <div class="form-group">
+            <label>Tanggal</label>
+            <input type="date" id="keg-tgl">
+          </div>
+          <div class="form-group">
+            <label>Deskripsi Lengkap</label>
+            <textarea id="keg-desc" rows="4" placeholder="Deskripsi detail untuk halaman lengkap..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>URL Gambar Utama (thumbnail)</label>
+            <input type="url" id="keg-gambar" placeholder="https://example.com/foto.jpg">
+            <small style="color:#888">Ukuran ideal: 800×600 px</small>
+          </div>
+          <button class="submit-btn" onclick="uploadKegiatan()">Upload Kegiatan</button>
+        </div>
+      </div>
+
+      <!-- Daftar Kegiatan -->
+      <div class="kegiatan-grid" id="kegiatan-list">
+        <!-- Contoh dummy -->
+        <!-- <div class="kegiatan-card">
+          <img src="assets/placeholder.jpg" alt="Kegiatan" class="kegiatan-img" onclick="openDetail(1)">
+          <div class="kegiatan-info">
+            <h3 class="kegiatan-title">Drone Mapping Camp</h3>
+            <p class="kegiatan-date">10 Des 2025</p>
+          </div>
+        </div> -->
+      </div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+  <script>
+    // Render ulang saat load
+    document.addEventListener('DOMContentLoaded', () => {
+      renderKegiatanList();
+      updateAdminUI(); // pastikan tombol admin muncul sesuai status
+    });
+
+    function renderKegiatanList() {
+      const container = document.getElementById('kegiatan-list');
+      const kegiatan = JSON.parse(localStorage.getItem('pramyosmar_kegiatan') || '[]');
+      
+      if (kegiatan.length === 0) {
+        container.innerHTML = `<p class="glow" style="grid-column:1/-1; text-align:center;">belum ada kegiatan.</p>`;
+        return;
+      }
+
+      container.innerHTML = kegiatan.map((k, i) => `
+        <div class="kegiatan-card glass">
+          <img 
+            src="${k.image || 'assets/placeholder.jpg'}" 
+            alt="${k.title}" 
+            class="kegiatan-img"
+            onclick="openDetail(${k.id})"
+          >
+          <div class="kegiatan-info">
+            <h3 class="kegiatan-title">${k.title}</h3>
+            <p class="kegiatan-date">${formatDate(k.tanggal)}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openDetail(id) {
+      // Simpan ke localStorage sementara (atau pakai URL param)
+      localStorage.setItem('pramyosmar_kegiatan_active_id', id);
+      window.location.href = 'kegiatan-detail.html';
+    }
+
+    function uploadKegiatan() {
+      if (!isAdmin) return alert("🔒 Login sebagai admin dulu!");
+      
+      const judul = document.getElementById('keg-judul').value.trim();
+      const tgl = document.getElementById('keg-tgl').value;
+      const desc = document.getElementById('keg-desc').value.trim();
+      const gambar = document.getElementById('keg-gambar').value;
+
+      if (!judul || !tgl || !desc) return alert("❌ Judul, tanggal, dan deskripsi wajib diisi!");
+      
+      const data = {
+        id: Date.now(),
+        title: judul,
+        tanggal: tgl,
+        description: desc,
+        image: gambar || ''
+      };
+
+      let list = JSON.parse(localStorage.getItem('pramyosmar_kegiatan') || '[]');
+      list.unshift(data); // tambah di awal
+      localStorage.setItem('pramyosmar_kegiatan', JSON.stringify(list));
+
+      alert("✅ Kegiatan berhasil diupload (simulasi).");
+      renderKegiatanList();
+
+      // Reset form
+      document.getElementById('keg-judul').value = '';
+      document.getElementById('keg-tgl').value = '';
+      document.getElementById('keg-desc').value = '';
+      document.getElementById('keg-gambar').value = '';
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '—';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+  </script>
+</body>
+</html>
