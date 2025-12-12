@@ -7,17 +7,14 @@
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
-    .detail-hero {
-      text-align: center;
-      margin-bottom: 2.5rem;
-    }
+    .detail-hero { text-align: center; margin-bottom: 2rem; }
     .detail-img {
       width: 100%;
-      max-height: 50vh;
+      max-height: 60vh;
       object-fit: cover;
       border-radius: 16px;
       margin: 1.5rem 0;
-      box-shadow: 0 0 25px rgba(0, 243, 255, 0.3);
+      box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
     }
     .detail-content {
       padding: 1.5rem;
@@ -43,7 +40,6 @@
 </head>
 <body>
   <header class="header">
-    <!-- ... (sama seperti sebelumnya) ... -->
     <div class="logo-container">
       <div class="logo-glow">
         <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -56,7 +52,7 @@
     </div>
     <nav class="nav">
       <a href="index.html">Beranda</a>
-      <a href="kegiatan.html">← Kembali ke Daftar</a>
+      <a href="kegiatan.html">← Daftar Kegiatan</a>
     </nav>
   </header>
 
@@ -66,8 +62,8 @@
         ← Kembali ke Daftar Kegiatan
       </a>
 
-      <div id="detail-container">
-        <div class="glow" style="text-align:center; padding:3rem;">Memuat...</div>
+      <div id="detail-container" class="glass" style="padding:2rem; min-height:300px;">
+        <div class="glow" style="text-align:center; padding:2rem;">Memuat data kegiatan...</div>
       </div>
     </div>
   </main>
@@ -78,7 +74,8 @@
       if (!id) {
         document.getElementById('detail-container').innerHTML = `
           <div class="glow" style="text-align:center; color:#ff6b6b;">
-            ❌ Data tidak ditemukan. Kembali ke <a href="kegiatan.html" style="color:var(--neon-purple)">daftar kegiatan</a>.
+            ❌ Data tidak ditemukan.<br>
+            <a href="kegiatan.html" style="color:var(--neon-purple); text-decoration:underline;">Kembali ke daftar</a>
           </div>
         `;
         return;
@@ -88,7 +85,11 @@
       const keg = kegiatanList.find(k => k.id == id);
 
       if (!keg) {
-        document.getElementById('detail-container').innerHTML = `<p class="glow">Kegiatan tidak ditemukan.</p>`;
+        document.getElementById('detail-container').innerHTML = `
+          <p class="glow" style="text-align:center;">
+            Kegiatan dengan ID ${id} tidak ditemukan.
+          </p>
+        `;
         return;
       }
 
@@ -103,12 +104,12 @@
         </div>
 
         <img 
-          src="${keg.image || 'assets/placeholder.jpg'}" 
+          src="${keg.image || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231a1a2e%22/><text x=%2250%22 y=%2255%22 font-family=%22Orbitron%22 font-size=%2214%22 fill=%22%23555%22 text-anchor=%22middle%22>NO IMAGE</text></svg>'}" 
           alt="${keg.title}" 
-          class="detail-img glass"
+          class="detail-img"
         >
 
-        <div class="detail-content glass">
+        <div class="detail-content">
           <h2>Deskripsi Kegiatan</h2>
           <p>${keg.description.replace(/\n/g, '<br>')}</p>
         </div>
