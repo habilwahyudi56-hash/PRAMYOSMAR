@@ -78,27 +78,51 @@
       <!-- Admin Upload -->
       <div class="admin-section">
         <button class="admin-btn"></button>
-        <div class="upload-form glass">
-          <h3>➕ Upload Kegiatan Baru</h3>
-          <div class="form-group">
-            <label>Judul Kegiatan</label>
-            <input type="text" id="keg-judul" placeholder="Contoh: Drone Mapping Camp">
-          </div>
-          <div class="form-group">
-            <label>Tanggal</label>
-            <input type="date" id="keg-tgl">
-          </div>
-          <div class="form-group">
-            <label>Deskripsi Lengkap</label>
-            <textarea id="keg-desc" rows="4" placeholder="Deskripsi detail untuk halaman lengkap..."></textarea>
-          </div>
-          <div class="form-group">
-            <label>URL Gambar Utama (thumbnail)</label>
-            <input type="url" id="keg-gambar" placeholder="https://example.com/foto.jpg">
-            <small style="color:#888">Ukuran ideal: 800×600 px</small>
-          </div>
-          <button class="submit-btn" onclick="uploadKegiatan()">Upload Kegiatan</button>
-        </div>
+       <!-- Ganti bagian upload-form di kegiatan.html -->
+<div class="upload-form glass">
+  <h3>➕ Upload Kegiatan Baru</h3>
+  
+  <div class="form-group">
+    <label>Judul Kegiatan</label>
+    <input type="text" id="keg-judul" placeholder="Contoh: Drone Mapping Camp">
+  </div>
+  
+  <div class="form-group">
+    <label>Tanggal</label>
+    <input type="date" id="keg-tgl">
+  </div>
+  
+  <div class="form-group">
+    <label>Deskripsi Lengkap</label>
+    <textarea id="keg-desc" rows="4" placeholder="Deskripsi detail untuk halaman lengkap..."></textarea>
+  </div>
+  
+  <!-- 🖼️ UPLOAD GAMBAR VIA FILE PICKER -->
+  <div class="form-group">
+    <label for="keg-foto-input">Upload Foto Kegiatan</label>
+    <div class="file-upload-area glass" onclick="document.getElementById('keg-foto-input').click()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="17 8 12 3 7 8"></polyline>
+        <line x1="12" y1="3" x2="12" y2="15"></line>
+      </svg>
+      <span id="keg-foto-label">Pilih file gambar (JPG/PNG)</span>
+      <input 
+        type="file" 
+        id="keg-foto-input" 
+        accept="image/jpeg,image/png,image/webp"
+        style="display:none"
+        onchange="previewImage(this, 'keg-foto-preview', 'keg-foto-label')"
+      >
+    </div>
+    <!-- Preview gambar -->
+    <div id="keg-foto-preview" class="image-preview" style="display:none; margin-top:1rem;">
+      <img id="keg-preview-img" src="" alt="Preview" style="max-width:100%; border-radius:8px; box-shadow:0 0 10px rgba(0,243,255,0.3);">
+    </div>
+  </div>
+
+  <button class="submit-btn" onclick="uploadKegiatan()">Upload Kegiatan</button>
+</div>
       </div>
 
       <!-- Daftar Kegiatan -->
