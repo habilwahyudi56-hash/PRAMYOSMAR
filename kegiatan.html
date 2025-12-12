@@ -178,15 +178,50 @@
       window.location.href = 'kegiatan-detail.html';
     }
 
-    function uploadKegiatan() {
-      if (!isAdmin) return alert("🔒 Login sebagai admin dulu!");
-      
-      const judul = document.getElementById('keg-judul').value.trim();
-      const tgl = document.getElementById('keg-tgl').value;
-      const desc = document.getElementById('keg-desc').value.trim();
-      const gambar = document.getElementById('keg-gambar').value;
+    async function uploadKegiatan() {
+  if (!isAdmin) return alert("🔒 Login sebagai admin dulu!");
 
-      if (!judul || !tgl || !desc) return alert("❌ Judul, tanggal, dan deskripsi wajib diisi!");
+  const judul = document.getElementById('keg-judul').value.trim();
+  const tgl = document.getElementById('keg-tgl').value;
+  const desc = document.getElementById('keg-desc').value.trim();
+  const fileInput = document.getElementById('keg-foto-input');
+
+  if (!judul || !tgl || !desc) return alert("❌ Judul, tanggal, dan deskripsi wajib diisi!");
+  
+  let imageData = '';
+
+  // Jika ada file dipilih → konversi ke base64
+  if (fileInput.files && fileInput.files[0]) {
+    try {
+      imageData = await getBase64FromFile(fileInput.files[0]);
+    } catch (err) {
+      return alert("❌ Gagal membaca file gambar.");
+    }
+  }
+
+  const data = {
+    id: Date.now(),
+    title: judul,
+    tanggal: tgl,
+    description: desc,
+    image: imageData // base64 string, bukan URL
+  };
+
+  let list = JSON.parse(localStorage.getItem('pramyosmar_kegiatan') || '[]');
+  list.unshift(data);
+  localStorage.setItem('pramyosmar_kegiatan', JSON.stringify(list));
+
+  alert("✅ Kegiatan berhasil diupload!\nFoto disimpan secara lokal (simulasi).");
+  renderKegiatanList();
+
+  // Reset form
+  document.getElementById('keg-judul').value = '';
+  document.getElementById('keg-tgl').value = '';
+  document.getElementById('keg-desc').value = '';
+  fileInput.value = '';
+  document.getElementById('keg-foto-preview').style.display = 'none';
+  document.getElementById('keg-foto-label').textContent = 'Pilih file gambar (JPG/PNG)';
+}
       
       const data = {
         id: Date.now(),
