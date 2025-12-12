@@ -6,49 +6,9 @@
   <title>Kegiatan — PRAMYOSMAR</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
-  <style>
-    .kegiatan-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.8rem;
-      margin-top: 2rem;
-    }
-    .kegiatan-card {
-      background: var(--glass-bg);
-      border-radius: 16px;
-      overflow: hidden;
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
-    .kegiatan-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 10px 25px rgba(0, 243, 255, 0.3);
-    }
-    .kegiatan-img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-      cursor: pointer;
-      filter: brightness(0.9);
-      transition: filter 0.3s;
-    }
-    .kegiatan-img:hover {
-      filter: brightness(1.1) contrast(1.05);
-    }
-    .kegiatan-info {
-      padding: 1.2rem;
-    }
-    .kegiatan-title {
-      font-size: 1.2rem;
-      margin: 0 0 0.5rem;
-      color: white;
-    }
-    .kegiatan-date {
-      font-size: 0.85rem;
-      color: var(--neon-blue);
-    }
-  </style>
 </head>
-<body>
+<body id="body">
+  <!-- Header -->
   <header class="header">
     <div class="logo-container">
       <div class="logo-glow">
@@ -77,89 +37,110 @@
 
       <!-- Admin Upload -->
       <div class="admin-section">
-        <button class="admin-btn"></button>
-       <!-- Ganti bagian upload-form di kegiatan.html -->
-<div class="upload-form glass">
-  <h3>➕ Upload Kegiatan Baru</h3>
-  
-  <div class="form-group">
-    <label>Judul Kegiatan</label>
-    <input type="text" id="keg-judul" placeholder="Contoh: Drone Mapping Camp">
-  </div>
-  
-  <div class="form-group">
-    <label>Tanggal</label>
-    <input type="date" id="keg-tgl">
-  </div>
-  
-  <div class="form-group">
-    <label>Deskripsi Lengkap</label>
-    <textarea id="keg-desc" rows="4" placeholder="Deskripsi detail untuk halaman lengkap..."></textarea>
-  </div>
-  
-  <!-- 🖼️ UPLOAD GAMBAR VIA FILE PICKER -->
-  <div class="form-group">
-    <label for="keg-foto-input">Upload Foto Kegiatan</label>
-    <div class="file-upload-area glass" onclick="document.getElementById('keg-foto-input').click()">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-        <polyline points="17 8 12 3 7 8"></polyline>
-        <line x1="12" y1="3" x2="12" y2="15"></line>
-      </svg>
-      <span id="keg-foto-label">Pilih file gambar (JPG/PNG)</span>
-      <input 
-        type="file" 
-        id="keg-foto-input" 
-        accept="image/jpeg,image/png,image/webp"
-        style="display:none"
-        onchange="previewImage(this, 'keg-foto-preview', 'keg-foto-label')"
-      >
-    </div>
-    <!-- Preview gambar -->
-    <div id="keg-foto-preview" class="image-preview" style="display:none; margin-top:1rem;">
-      <img id="keg-preview-img" src="" alt="Preview" style="max-width:100%; border-radius:8px; box-shadow:0 0 10px rgba(0,243,255,0.3);">
-    </div>
-  </div>
+        <button class="admin-btn" id="admin-btn"></button>
+        <div class="upload-form glass" id="upload-form">
+          <h3>➕ Upload Kegiatan Baru</h3>
+          
+          <div class="form-group">
+            <label>Judul Kegiatan</label>
+            <input type="text" id="keg-judul" placeholder="Contoh: Drone Mapping Camp">
+          </div>
+          
+          <div class="form-group">
+            <label>Tanggal</label>
+            <input type="date" id="keg-tgl">
+          </div>
+          
+          <div class="form-group">
+            <label>Deskripsi Lengkap</label>
+            <textarea id="keg-desc" rows="4" placeholder="Deskripsi detail untuk halaman lengkap..."></textarea>
+          </div>
+          
+          <!-- 🖼️ File Upload (Galeri) -->
+          <div class="form-group">
+            <label for="keg-foto-input">Upload Foto Kegiatan</label>
+            <div class="file-upload-area glass" onclick="document.getElementById('keg-foto-input').click()">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span id="keg-foto-label">Pilih file gambar (JPG/PNG)</span>
+              <input 
+                type="file" 
+                id="keg-foto-input" 
+                accept="image/jpeg,image/png,image/webp"
+                style="display:none"
+                onchange="previewImage(this, 'keg-foto-preview', 'keg-foto-label')"
+              >
+            </div>
+            <!-- Preview -->
+            <div id="keg-foto-preview" class="image-preview" style="display:none; margin-top:1rem;">
+              <img id="keg-preview-img" src="" alt="Preview" style="max-width:100%; border-radius:8px; box-shadow:0 0 10px rgba(0,243,255,0.3);">
+            </div>
+          </div>
 
-  <button class="submit-btn" onclick="uploadKegiatan()">Upload Kegiatan</button>
-</div>
+          <button class="submit-btn" onclick="uploadKegiatan()">Upload Kegiatan</button>
+        </div>
       </div>
 
       <!-- Daftar Kegiatan -->
       <div class="kegiatan-grid" id="kegiatan-list">
-        <!-- Contoh dummy -->
-        <!-- <div class="kegiatan-card">
-          <img src="assets/placeholder.jpg" alt="Kegiatan" class="kegiatan-img" onclick="openDetail(1)">
-          <div class="kegiatan-info">
-            <h3 class="kegiatan-title">Drone Mapping Camp</h3>
-            <p class="kegiatan-date">10 Des 2025</p>
-          </div>
-        </div> -->
+        <p class="glow" style="grid-column:1/-1; text-align:center;">Memuat...</p>
       </div>
     </div>
   </main>
 
   <script src="script.js"></script>
   <script>
-    // Render ulang saat load
-    document.addEventListener('DOMContentLoaded', () => {
-      renderKegiatanList();
-      updateAdminUI(); // pastikan tombol admin muncul sesuai status
-    });
+    // Konversi file ke base64
+    function getBase64FromFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    }
 
+    // Preview gambar
+    function previewImage(input, previewId, labelId) {
+      const preview = document.getElementById(previewId);
+      const label = document.getElementById(labelId);
+      const img = preview.querySelector('img');
+
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        if (!file.type.match('image.*')) {
+          alert("❌ Hanya file gambar (JPG/PNG/WebP) yang diizinkan.");
+          input.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          img.src = e.target.result;
+          preview.style.display = 'block';
+          label.textContent = `✓ ${file.name}`;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Render daftar kegiatan
     function renderKegiatanList() {
       const container = document.getElementById('kegiatan-list');
       const kegiatan = JSON.parse(localStorage.getItem('pramyosmar_kegiatan') || '[]');
       
       if (kegiatan.length === 0) {
-        container.innerHTML = `<p class="glow" style="grid-column:1/-1; text-align:center;">belum ada kegiatan.</p>`;
+        container.innerHTML = `<p class="glow" style="grid-column:1/-1; text-align:center;">Belum ada kegiatan.</p>`;
         return;
       }
 
       container.innerHTML = kegiatan.map((k, i) => `
         <div class="kegiatan-card glass">
           <img 
-            src="${k.image || 'assets/placeholder.jpg'}" 
+            src="${k.image || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%22 y=%2250%22 font-size=%2212%22 fill=%22%23555%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>NO IMAGE</text></svg>'}" 
             alt="${k.title}" 
             class="kegiatan-img"
             onclick="openDetail(${k.id})"
@@ -173,76 +154,52 @@
     }
 
     function openDetail(id) {
-      // Simpan ke localStorage sementara (atau pakai URL param)
       localStorage.setItem('pramyosmar_kegiatan_active_id', id);
       window.location.href = 'kegiatan-detail.html';
     }
 
     async function uploadKegiatan() {
-  if (!isAdmin) return alert("🔒 Login sebagai admin dulu!");
+      if (!isAdmin) return alert("🔒 Login sebagai admin dulu!");
 
-  const judul = document.getElementById('keg-judul').value.trim();
-  const tgl = document.getElementById('keg-tgl').value;
-  const desc = document.getElementById('keg-desc').value.trim();
-  const fileInput = document.getElementById('keg-foto-input');
+      const judul = document.getElementById('keg-judul').value.trim();
+      const tgl = document.getElementById('keg-tgl').value;
+      const desc = document.getElementById('keg-desc').value.trim();
+      const fileInput = document.getElementById('keg-foto-input');
 
-  if (!judul || !tgl || !desc) return alert("❌ Judul, tanggal, dan deskripsi wajib diisi!");
-  
-  let imageData = '';
+      if (!judul || !tgl || !desc) return alert("❌ Judul, tanggal, dan deskripsi wajib diisi!");
 
-  // Jika ada file dipilih → konversi ke base64
-  if (fileInput.files && fileInput.files[0]) {
-    try {
-      imageData = await getBase64FromFile(fileInput.files[0]);
-    } catch (err) {
-      return alert("❌ Gagal membaca file gambar.");
-    }
-  }
+      let imageData = '';
 
-  const data = {
-    id: Date.now(),
-    title: judul,
-    tanggal: tgl,
-    description: desc,
-    image: imageData // base64 string, bukan URL
-  };
+      if (fileInput.files && fileInput.files[0]) {
+        try {
+          imageData = await getBase64FromFile(fileInput.files[0]);
+        } catch (err) {
+          return alert("❌ Gagal membaca file gambar.");
+        }
+      }
 
-  let list = JSON.parse(localStorage.getItem('pramyosmar_kegiatan') || '[]');
-  list.unshift(data);
-  localStorage.setItem('pramyosmar_kegiatan', JSON.stringify(list));
-
-  alert("✅ Kegiatan berhasil diupload!\nFoto disimpan secara lokal (simulasi).");
-  renderKegiatanList();
-
-  // Reset form
-  document.getElementById('keg-judul').value = '';
-  document.getElementById('keg-tgl').value = '';
-  document.getElementById('keg-desc').value = '';
-  fileInput.value = '';
-  document.getElementById('keg-foto-preview').style.display = 'none';
-  document.getElementById('keg-foto-label').textContent = 'Pilih file gambar (JPG/PNG)';
-}
-      
       const data = {
         id: Date.now(),
         title: judul,
         tanggal: tgl,
         description: desc,
-        image: gambar || ''
+        image: imageData
       };
 
       let list = JSON.parse(localStorage.getItem('pramyosmar_kegiatan') || '[]');
-      list.unshift(data); // tambah di awal
+      list.unshift(data);
       localStorage.setItem('pramyosmar_kegiatan', JSON.stringify(list));
 
-      alert("✅ Kegiatan berhasil diupload (simulasi).");
+      alert("✅ Kegiatan berhasil diupload!\nFoto disimpan secara lokal (simulasi).");
       renderKegiatanList();
 
       // Reset form
       document.getElementById('keg-judul').value = '';
       document.getElementById('keg-tgl').value = '';
       document.getElementById('keg-desc').value = '';
-      document.getElementById('keg-gambar').value = '';
+      fileInput.value = '';
+      document.getElementById('keg-foto-preview').style.display = 'none';
+      document.getElementById('keg-foto-label').textContent = 'Pilih file gambar (JPG/PNG)';
     }
 
     function formatDate(dateStr) {
@@ -250,6 +207,12 @@
       const d = new Date(dateStr);
       return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
     }
+
+    // Inisialisasi
+    document.addEventListener('DOMContentLoaded', () => {
+      renderKegiatanList();
+      updateAdminUI();
+    });
   </script>
 </body>
 </html>
