@@ -6,6 +6,66 @@
   <title>Kegiatan — PRAMYOSMAR</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    .kegiatan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.8rem;
+      margin-top: 2rem;
+    }
+    .kegiatan-card {
+      background: var(--glass-bg);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.3s;
+    }
+    .kegiatan-card:hover {
+      transform: translateY(-6px);
+    }
+    .kegiatan-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      cursor: pointer;
+    }
+    .kegiatan-info {
+      padding: 1.2rem;
+    }
+    .kegiatan-title {
+      font-size: 1.2rem;
+      margin: 0 0 0.5rem;
+      color: white;
+    }
+    .kegiatan-date {
+      font-size: 0.85rem;
+      color: var(--neon-blue);
+    }
+    .file-upload-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      border: 2px dashed var(--glass-border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      color: #aaa;
+    }
+    .file-upload-area:hover {
+      border-color: var(--neon-blue);
+      background: rgba(0, 243, 255, 0.05);
+      color: var(--neon-blue);
+    }
+    .file-upload-area svg {
+      width: 28px; height: 28px; margin-bottom: 0.5rem;
+    }
+    .image-preview img {
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  </style>
 </head>
 <body>
   <header class="header">
@@ -25,8 +85,7 @@
       <a href="berita.html">Berita</a>
       <a href="kegiatan.html" class="active">Kegiatan</a>
       <a href="materi.html">Materi</a>
-      <a href="ujian.html">Ujian</a>
-      <a href="struktur.html">Struktur</a>
+      <a href="ujian.html">Ujian & Struktur</a>
       <a href="kontak.html">Kontak</a>
     </nav>
   </header>
@@ -71,11 +130,10 @@
                 id="keg-foto-input" 
                 accept="image/jpeg,image/png,image/webp"
                 style="display:none"
-                onchange="previewImage(this, 'keg-foto-preview', 'keg-foto-label')"
               >
             </div>
             <div id="keg-foto-preview" class="image-preview" style="display:none; margin-top:1rem;">
-              <img id="keg-preview-img" src="" alt="Preview" style="max-width:100%; border-radius:8px; box-shadow:0 0 10px rgba(0,243,255,0.3);">
+              <img id="keg-preview-img" src="" alt="Preview" style="max-width:100%; border-radius:8px;">
             </div>
           </div>
 
@@ -90,94 +148,140 @@
     </div>
   </main>
 
-  <script src="script.js"></script>
   <script>
-    // Render daftar kegiatan
-    function renderKegiatanList() {
-      const container = document.getElementById('kegiatan-list');
-      const kegiatan = JSON.parse(localStorage.getItem('pramyosmar_kegiatan') || '[]');
+    // 🔐 Konfigurasi
+    const ADMIN_PASSWORD = "ADMIN_PASSWORD";
+    let isAdmin = false;
+
+    // 🚀 Inisialisasi
+    document.addEventListener('DOMContentLoaded', () => {
+      isAdmin = localStorage.getItem('pramyosmar_admin') === 'true';
+      updateAdminUI();
+      renderKegiatan();
+    });
+
+    // 🔐 Admin
+    function loginAdmin() {
+      const pass = prompt("🔐 Masukkan password admin:");
+      if (pass === ADMIN_PASSWORD) {
+        localStorage.setItem('pramyosmar_admin', 'true');
+        isAdmin = true;
+        alert("✅ Login berhasil!");
+        updateAdminUI();
+      } else if (pass !== null) {
+        alert("❌ Password salah!");
+      }
+    }
+    function logoutAdmin() {
+      if (confirm("Yakin logout?")) {
+        localStorage.removeItem('pramyosmar_admin');
+        isAdmin = false;
+        updateAdminUI();
+        alert("✅ Logout berhasil.");
+      }
+    }
+    function updateAdminUI() {
+      document.getElementById('admin-btn').textContent = isAdmin ? "Logout Admin" : "Login Admin";
+      document.getElementById('admin-btn').onclick = isAdmin ? logoutAdmin : loginAdmin;
+      document.getElementById('upload-form').style.display = isAdmin ? 'block' : 'none';
+    }
+
+    // 👁️ Preview Gambar
+    document.getElementById('keg-foto-input').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      const preview = document.getElementById('keg-foto-preview');
+      const img = document.getElementById('keg-preview-img');
+      const label = document.getElementById('keg-foto-label');
+
+      if (file) {
+        if (!file.type.match('image.*')) {
+          alert("❌ Hanya file gambar (JPG/PNG) yang diizinkan.");
+          this.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          img.src = event.target.result;
+          preview.style.display = 'block';
+          label.textContent = `✓ ${file.name}`;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // 🗓️ Upload Kegiatan — Versi Fix Terbaru
+    function uploadKegiatan() {
+      if (!isAdmin) return alert("🔒 Login sebagai admin dulu!");
+
+      const judul = document.getElementById('keg-judul').value.trim();
+      const tanggal = document.getElementById('keg-tgl').value;
+      const desc = document.getElementById('keg-desc').value.trim();
+
+      if (!judul || !desc) return alert("❌ Judul dan deskripsi wajib diisi!");
+
+      const fileInput = document.getElementById('keg-foto-input');
+      const imageData = document.getElementById('keg-preview-img').src;
+
+      // Siapkan data
+      const newData = {
+        id: Date.now(),
+        title: judul,
+        tanggal: tanggal,
+        description: desc,
+        image: imageData
+      };
+
+      // Ambil data lama
+      let allData = JSON.parse(localStorage.getItem('pramyosmar_data') || '{"kegiatan":[],"berita":[],"materi":[],"ujian":[],"struktur":[]}');
+      allData.kegiatan.unshift(newData);
       
+      // Simpan ke localStorage
+      localStorage.setItem('pramyosmar_data', JSON.stringify(allData));
+      
+      // Tampilkan untuk copy-paste ke Gist
+      const jsonStr = JSON.stringify(allData, null, 2);
+      alert("✅ Kegiatan tersimpan lokal!\n📋 Salin data di bawah → paste ke file 'pramyosmar-data.json' di Gist Anda:");
+      prompt("📋 COPY SEMUA TEKS INI → paste ke Gist:", jsonStr);
+      
+      // Reset form
+      document.getElementById('keg-judul').value = '';
+      document.getElementById('keg-tgl').value = '';
+      document.getElementById('keg-desc').value = '';
+      document.getElementById('keg-foto-input').value = '';
+      document.getElementById('keg-foto-preview').style.display = 'none';
+      document.getElementById('keg-foto-label').textContent = 'Pilih file gambar (JPG/PNG)';
+      
+      // Render ulang
+      renderKegiatan();
+    }
+
+    // 📋 Render Kegiatan
+    function renderKegiatan() {
+      const container = document.getElementById('kegiatan-list');
+      const data = JSON.parse(localStorage.getItem('pramyosmar_data') || '{"kegiatan":[]}');
+      const kegiatan = data.kegiatan || [];
+
       if (kegiatan.length === 0) {
         container.innerHTML = `<p class="glow" style="grid-column:1/-1; text-align:center;">Belum ada kegiatan.</p>`;
         return;
       }
 
-      container.innerHTML = kegiatan.map(k => `
+      container.innerHTML = kegiatan.map((k, i) => `
         <div class="kegiatan-card glass">
           <img 
-            src="${k.image || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%22 y=%2250%22 font-size=%2212%22 fill=%22%23555%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>NO IMAGE</text></svg>'}" 
+            src="${k.image || 'https://via.placeholder.com/300x200/1a1a2e/555?text=NO+IMAGE'}" 
             alt="${k.title}" 
             class="kegiatan-img"
-            onclick="openDetail(${k.id})"
+            onclick="alert('Fitur detail belum diaktifkan.\\nUntuk sekarang, data disimpan lokal.')"
           >
           <div class="kegiatan-info">
             <h3 class="kegiatan-title">${k.title}</h3>
-            <p class="kegiatan-date">${formatDate(k.tanggal)}</p>
+            <p class="kegiatan-date">${k.tanggal || '—'}</p>
           </div>
         </div>
       `).join('');
     }
-
-    function openDetail(id) {
-      localStorage.setItem('pramyosmar_kegiatan_active_id', id);
-      window.location.href = 'kegiatan-detail.html';
-    }
-
-    async function uploadKegiatan() {
-      if (!isAdmin) return alert("🔒 Login sebagai admin dulu!");
-
-      const judul = document.getElementById('keg-judul').value.trim();
-      const tgl = document.getElementById('keg-tgl').value;
-      const desc = document.getElementById('keg-desc').value.trim();
-      const fileInput = document.getElementById('keg-foto-input');
-
-      if (!judul || !tgl || !desc) return alert("❌ Judul, tanggal, dan deskripsi wajib diisi!");
-
-      let imageData = '';
-
-      if (fileInput.files && fileInput.files[0]) {
-        try {
-          imageData = await getBase64FromFile(fileInput.files[0]);
-        } catch (err) {
-          return alert("❌ Gagal membaca file gambar.");
-        }
-      }
-
-      const data = {
-        id: Date.now(),
-        title: judul,
-        tanggal: tgl,
-        description: desc,
-        image: imageData
-      };
-
-      let list = JSON.parse(localStorage.getItem('pramyosmar_kegiatan') || '[]');
-      list.unshift(data);
-      localStorage.setItem('pramyosmar_kegiatan', JSON.stringify(list));
-
-      alert("✅ Kegiatan berhasil diupload!");
-      renderKegiatanList();
-
-      // Reset form
-      document.getElementById('keg-judul').value = '';
-      document.getElementById('keg-tgl').value = '';
-      document.getElementById('keg-desc').value = '';
-      fileInput.value = '';
-      document.getElementById('keg-foto-preview').style.display = 'none';
-      document.getElementById('keg-foto-label').textContent = 'Pilih file gambar (JPG/PNG)';
-    }
-
-    function formatDate(dateStr) {
-      if (!dateStr) return '—';
-      const d = new Date(dateStr);
-      return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-    }
-
-    // Inisialisasi
-    document.addEventListener('DOMContentLoaded', () => {
-      renderKegiatanList();
-      updateAdminUI();
-    });
   </script>
 </body>
 </html>
